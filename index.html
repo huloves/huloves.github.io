@@ -5,17 +5,17 @@
   
 
   
-  <title>Hexo</title>
+  <title>huloves</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
+<meta property="og:title" content="huloves">
 <meta property="og:url" content="http://yoursite.com/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="huloves">
 <meta property="og:locale" content="en_US">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
   
-    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+    <link rel="alternate" href="/atom.xml" title="huloves" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.png">
@@ -36,7 +36,7 @@
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
       <h1 id="logo-wrap">
-        <a href="/" id="logo">Hexo</a>
+        <a href="/" id="logo">huloves</a>
       </h1>
       
     </div>
@@ -86,13 +86,33 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <h2 id="任务切换"><a href="#任务切换" class="headerlink" title="任务切换"></a>任务切换</h2><p>在一个多任务的环境中，可以同时存在多个任务，每个人物都有各自的局部描述符表（LDT）和任务状态段（TSS）。从一个任务切换到另一个任务时，具体的切换过程是由处理器固件负责进行的。</p>
+<p>多任务系统：能够同时执行两个以上任务的系统。及及时一个任务没有执行完，下一个任务也可以开始执行。如何切换到另一个任务每一集切换到哪一个任务执行，主要是操作系统负责的。处理器只负责具体的切换过程，包括保护前一个任务的现场。</p>
+<p>任务切换的两种基本方式：协同式，抢占式。<br>协同式：从一个任务切换到另一个任务，需要当前任务主动地区请求暂时放弃执行权。一个任务失控，其他任务可能得不到执行的机会。<br>抢占式：安装一个定时器中断，并在中断服务程序中实施任务切换。在这种情扩下，每个任务能获得平等的执行机会。一个任务失控，不会导致其他任务没有执行机会。</p>
+<blockquote>
+<p>学习目标：<br>①了解多任务切换的一般工作原理。<br>②掌握任务切换的几种方法，以及它们各自的特点。</p>
+</blockquote>
+<h3 id="任务切换前的设置"><a href="#任务切换前的设置" class="headerlink" title="任务切换前的设置"></a>任务切换前的设置</h3><p>所有任务共享一个全局空间，这是内核或者操作系统提供的，包含了系统服务程序和数据。每个任务还有自己的局部空间，每个任务的功能都不一样，所以，局部空间包含的是一个任务区别于其他任务的私有代码和数据。</p>
+<p>在一个任务内，全局空间和局部空间具有不同的特权级别。使用门，可以在任务内将控制从3特权级的局部空间转移到0特权级的全局空间，以使用内核或者操作系统提供的服务。</p>
+<p>任务切换非常复杂。当一个任务正在执行时，处理器的各个部分和该任务息息相关：段寄存器指向该任务的内存段；通用寄存器保存着该任务的中间结果，等等。离开当前任务，转到另一个任务开始执行时，要保存旧任务的各种状态，并恢复新任务的运行环境。</p>
+<p>我们可以在计算及加电之后，一旦进入保护模式，就直接创建和执行操作系统的0特权级任务，然后从该任务切换到其他任务，不管他们是哪个特权级别的。</p>
+<p>创建一个0特权级的内核任务，将当前正在执行的内核代码段划归该任务，现在先把他叫做程序管理器。处理器允许没有LDT的任务，程序管理器任务没有自己的LDT。然后将控制权转移到任务管理器上。任务管理器创建并使用CALL指令切换到用户任务。</p>
+<blockquote>
+<p>指令：ltr cx    ;cx中存放这TSS的选择子<br>处理器用该选择自访问GDT，找到相应的TSS描述符，将其B位置“1”，表示该任务正在执行中（或者处于挂起状态）。同时，将该描述符传送到TR寄存器的描述符高速缓存器中。</p>
+</blockquote>
+<h3 id="任务切换的方法"><a href="#任务切换的方法" class="headerlink" title="任务切换的方法"></a>任务切换的方法</h3><p>借助中断，现代抢占式多任务的基础。<br>在保护模式下，中断向量表不再使用，使用的是中断描述符表，用于保存门描述符（中断门、陷阱门和任务门）。<br>一般的中断处理程序可以使用==中断门和陷阱门==。只是从任务的局部空间转移到更高特权级的全局空间区执行，本质上是一种任务内的控制转移行为。同时允许在任务内实施中断处理，转到全局空间去执行一些系统级的管理工作，本质上，也是任务内的控制转移行为。<br>如果该中断号对应的是任务门，必须进行任务切换。中断当前任务的执行，保护当前任务的现场，并转换到另一个任务执行。当中断发生时，处理器用中断号乘以8作为索引访问中断描述符表。当发现是任务门时就进行任务切换。</p>
+<blockquote>
+<p>①取出任务门描述符<br>②再从任务门描述符中取出新的TSS选择子<br>③使用TSS选择子访问GDT，取出新的TSS描述符<br>④处理器把当前任务的状态保存起来，处理器吧每个寄存器的内内容保存在当前任务的TSS中（TR寄存器现在指向的是当前任务）。<br>⑤处理器访问新的TSS，从中恢复各个寄存器的内容。<br>⑥任务寄存器TR指向新任务的TSS，一旦新任务开始执行，处理器就会自动将TSS描述符中的B位置为“1”，表示该任务的状态为忙。  </p>
+</blockquote>
+
       
     </div>
     <footer class="article-footer">
       <a data-url="http://yoursite.com/2020/01/14/hello/" data-id="ck5di0xj90000xfmpaf733klo" class="article-share-link">Share</a>
       
       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/test/" rel="tag">test</a></li></ul>
+
     </footer>
   </div>
   
@@ -159,9 +179,23 @@
 
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li></ul>
+    </div>
+  </div>
+
 
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/test/" style="font-size: 10px;">test</a>
+    </div>
+  </div>
+
   
     
   <div class="widget-wrap">
