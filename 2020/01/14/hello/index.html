@@ -5,20 +5,22 @@
   
 
   
-  <title>hello | huloves</title>
+  <title>X86从实模式到保护模式 | huloves</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="任务切换在一个多任务的环境中，可以同时存在多个任务，每个人物都有各自的局部描述符表（LDT）和任务状态段（TSS）。从一个任务切换到另一个任务时，具体的切换过程是由处理器固件负责进行的。 多任务系统：能够同时执行两个以上任务的系统。及及时一个任务没有执行完，下一个任务也可以开始执行。如何切换到另一个任务每一集切换到哪一个任务执行，主要是操作系统负责的。处理器只负责具体的切换过程，包括保护前一个任务">
 <meta property="og:type" content="article">
-<meta property="og:title" content="hello">
+<meta property="og:title" content="X86从实模式到保护模式">
 <meta property="og:url" content="http://yoursite.com/2020/01/14/hello/index.html">
 <meta property="og:site_name" content="huloves">
 <meta property="og:description" content="任务切换在一个多任务的环境中，可以同时存在多个任务，每个人物都有各自的局部描述符表（LDT）和任务状态段（TSS）。从一个任务切换到另一个任务时，具体的切换过程是由处理器固件负责进行的。 多任务系统：能够同时执行两个以上任务的系统。及及时一个任务没有执行完，下一个任务也可以开始执行。如何切换到另一个任务每一集切换到哪一个任务执行，主要是操作系统负责的。处理器只负责具体的切换过程，包括保护前一个任务">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/2020/01/14/hello/images/massion_change.png">
 <meta property="article:published_time" content="2020-01-14T06:30:05.000Z">
-<meta property="article:modified_time" content="2020-01-14T15:39:04.398Z">
+<meta property="article:modified_time" content="2020-01-15T03:25:06.714Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="test">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/01/14/hello/images/massion_change.png">
   
     <link rel="alternate" href="/atom.xml" title="huloves" type="application/atom+xml">
   
@@ -81,7 +83,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      hello
+      X86从实模式到保护模式
     </h1>
   
 
@@ -94,7 +96,7 @@
 <p>任务切换的两种基本方式：协同式，抢占式。<br>协同式：从一个任务切换到另一个任务，需要当前任务主动地区请求暂时放弃执行权。一个任务失控，其他任务可能得不到执行的机会。<br>抢占式：安装一个定时器中断，并在中断服务程序中实施任务切换。在这种情扩下，每个任务能获得平等的执行机会。一个任务失控，不会导致其他任务没有执行机会。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">学习目标：  </span><br><span class="line">①了解多任务切换的一般工作原理。  </span><br><span class="line">②掌握任务切换的几种方法，以及它们各自的特点。</span><br></pre></td></tr></table></figure>
 
-<h3 id="任务切换前的设置"><a href="#任务切换前的设置" class="headerlink" title="任务切换前的设置"></a>任务切换前的设置</h3><p>所有任务共享一个全局空间，这是内核或者操作系统提供的，包含了系统服务程序和数据。每个任务还有自己的局部空间，每个任务的功能都不一样，所以，局部空间包含的是一个任务区别于其他任务的私有代码和数据。</p>
+<h3 id="任务切换前的设置"><a href="#任务切换前的设置" class="headerlink" title="任务切换前的设置"></a>任务切换前的设置</h3><p>所有任务共享一个全局空间，这是内核或者操作系统提供的，包含了系统服务程序和数据。每个任务还有自己的局部空间，每个任务的功能都不一样，所以，局部空间包含的是一个任务区别于其他任务的私有代码和数据。<br><img src="./images/massion_change.png" alt=""></p>
 <p>在一个任务内，全局空间和局部空间具有不同的特权级别。使用门，可以在任务内将控制从3特权级的局部空间转移到0特权级的全局空间，以使用内核或者操作系统提供的服务。</p>
 <p>任务切换非常复杂。当一个任务正在执行时，处理器的各个部分和该任务息息相关：段寄存器指向该任务的内存段；通用寄存器保存着该任务的中间结果，等等。离开当前任务，转到另一个任务开始执行时，要保存旧任务的各种状态，并恢复新任务的运行环境。</p>
 <p>我们可以在计算及加电之后，一旦进入保护模式，就直接创建和执行操作系统的0特权级任务，然后从该任务切换到其他任务，不管他们是哪个特权级别的。</p>
@@ -172,7 +174,7 @@
       <ul>
         
           <li>
-            <a href="/2020/01/14/hello/">hello</a>
+            <a href="/2020/01/14/hello/">X86从实模式到保护模式</a>
           </li>
         
           <li>
