@@ -64,6 +64,58 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-分页机制概述" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/01/16/%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E6%A6%82%E8%BF%B0/" class="article-date">
+  <time datetime="2020-01-16T08:32:16.000Z" itemprop="datePublished">2020-01-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/01/16/%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E6%A6%82%E8%BF%B0/">分页机制概述</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="简单的分页模型"><a href="#简单的分页模型" class="headerlink" title="简单的分页模型"></a>简单的分页模型</h2><p>在单纯的分段模式下，线性地址就是物理地址。一旦采用了页式内存管理，就应当把4G内存分成大小相同的页。<br>页的最小单位是4KB，也就是4096字节，用十六进制表示就是0x1000。页的物理地址，其低12位始终全为0。<br>段机制在Intel处理器上是最基本的，无法关闭。是否启动页管理功能，分段机制都起作用。</p>
+<p>Q：如何将较大的段，映射到大小相同的页面上呢？</p>
+<p>A：内存的分配设计段空间的分配和页分配。在分页模式下，操作系统可以创建一个为所有任务公用的4GB的虚拟内存空间，<br>也可以为每一个任务创建一个4GB虚拟内存空间。当一个程序加载时，操作系统既要在虚拟内存中分配段空间，又要在物理内存中分配相应的页面。</p>
+<p>第一步是寻找空闲的段空间，该段空间既没有其他程序使用，也没由被同一个程序的其他段使用。<br>在分段之后，操作系统的任务是把段拆开，映射到相应的物理页上。段是连续的，但页不要求是连续的。分配页面时，操作系统会搜索那些空闲的页，并分配给程序使用，所分配页面的总长度要≥段长度。<br>线性地址区间和页的对应关系可以随意。虚拟内存不能保存任何数据，它只是反映了内存的使用情况。当操作系统大家一个程序时并创建任务使，操作系统在虚拟内存空间寻找空闲的段，并映射到空闲的页。然后开始加载程序，把原本属于段的数据按页的尺寸拆开，分开写入对应的页中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">允许页共享，多个段或多个程序可以用一个页来存自己的数据。  </span><br><span class="line">因为段与页之间的对应关系，不需要担心会出现找错地址的问题出现。  </span><br><span class="line">从段部件输出的是线性地址，或者叫虚拟地址，操作系统拿着这个线性地址找到对应的页中的物理地址。</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>为了根据线性地址找到页的物理地址，操作系统必须维护一张表，把线性地址换成物理地址。这个表是一个一维表格，每个表项占4字节，内容为页的物理地址。<br>表格的用法：页的尺寸是4KB，多以线性地址的低12位是访问页的页内偏移，高20位指定一个物理页。<br>线性地址的高20位当成索引，乘以4,作为表内偏移，找到要找的物理页地址存放的地方，从表项中取出一个双字，取出的双字就是线性地址锁对应的页的物理地址。加上页内偏移量就找到线性地址对应页的物理地址。</p>
+<p>Q：为什么在表内存放的地址会恰好是页地址，而不是其他页地址呢？</p>
+<p>A：当程序加载时，操作系统会首先在虚拟内存中分配段。然后，根据段需要分成多少页，来搜索空闲的页面。当段较大时，要按页的尺寸分成好几个地址区间，操作系统用每个区段的首地址，取20位，乘以4，作为偏移量访问表格，并将分配给该区段的页的物理地址写入该表项。最后，把原本要写入每个区段的程序数据，写到对应的页中。</p>
+<hr>
+<p>在页式内存管理中，页面的管理和分配是独立的，和分段以及段地址没有关系。操作系统要做的是找到空闲的页，把它分配给需要的段，并将页的物理地址写入映射表内。<br>线性地址，包括线性空间，和页面分配机制没有关系。所以为了充分发挥分页内存管理的潜力，每个任务都可以拥有4GB的虚拟内存空间。同时，每个任务都有自己的页映射表。<br>尽管有很多任务，而且每个任务都有自己的4GB虚拟内存空间，但是在整个系统中，物理页是统一调配的。理解为任务有很多个但物理内存只有一个。</p>
+<p>Q：每个任务都有4GB虚拟内存空间，而物理内存只有一个，最大也才4GB，那要怎么办？</p>
+<p>A：不够用是肯定的。操作系统可以将暂时不用的页退避到磁盘，调入马上就要使用的页，通过这种手段实现分页内存管理。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2020/01/16/%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E6%A6%82%E8%BF%B0/" data-id="ck5gne2sk0000eamp0tncf6c8" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/X86%E4%BB%8E%E5%AE%9E%E6%A8%A1%E5%BC%8F%E5%88%B0%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" rel="tag">X86从实模式到保护模式</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-hello" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2020/01/14/hello/" class="article-date">
@@ -100,6 +152,11 @@
 
 <h3 id="任务切换的方法"><a href="#任务切换的方法" class="headerlink" title="任务切换的方法"></a>任务切换的方法</h3><p>借助中断，现代抢占式多任务的基础。<br>在保护模式下，中断向量表不再使用，使用的是中断描述符表，用于保存门描述符（中断门、陷阱门和任务门）。<br>一般的中断处理程序可以使用==中断门和陷阱门==。只是从任务的局部空间转移到更高特权级的全局空间区执行，本质上是一种任务内的控制转移行为。同时允许在任务内实施中断处理，转到全局空间去执行一些系统级的管理工作，本质上，也是任务内的控制转移行为。<br>如果该中断号对应的是任务门，必须进行任务切换。中断当前任务的执行，保护当前任务的现场，并转换到另一个任务执行。当中断发生时，处理器用中断号乘以8作为索引访问中断描述符表。当发现是任务门时就进行任务切换。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">①取出任务门描述符  </span><br><span class="line">②再从任务门描述符中取出新的TSS选择子  </span><br><span class="line">③使用TSS选择子访问GDT，取出新的TSS描述符  </span><br><span class="line">④处理器把当前任务的状态保存起来，处理器吧每个寄存器的内内容保存在当前任务的TSS中（TR寄存器现在指向的是当前任务）。  </span><br><span class="line">⑤处理器访问新的TSS，从中恢复各个寄存器的内容。  </span><br><span class="line">⑥任务寄存器TR指向新任务的TSS，一旦新任务开始执行，处理器就会自动将TSS描述符中的B位置为“1”，表示该任务的状态为忙。</span><br></pre></td></tr></table></figure>
+
+<p>中断发生时，不管是常规的中断处理过程，还是任务切换，都需要使用iret指令返回。处理器如何区分这两种不同的返回类型呢？  </p>
+<p>32位处理器的EFLAGS有NT位（嵌套任务标志 Nested Task Flag）。每个任务的TSS中都有一个任务连接域<br>（指向前一个任务的指针），可以填写为前一个任务的TSS描述符选择子。如果当NT位为“1”的时候<br>表示正在执行的任务嵌套于其他任务中，能通过TSS任务链接域的指针返回到前一个任务。</p>
+<p>使用iret指令返回前一个任务，前提是当前任务EFLAGS值得NT位为“1”。如果是“0”，就是一般的中断处理过程。</p>
+<p>还可以使用远过程调用指令CALL，或者远跳转指令JMP直接发起任务切换。<br>CALL和JMP的操作数是任务的TSS或者任务们。</p>
 
       
     </div>
@@ -178,7 +235,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/X86%E4%BB%8E%E5%AE%9E%E6%A8%A1%E5%BC%8F%E5%88%B0%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" rel="tag">X86从实模式到保护模式</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li></ul>
     </div>
   </div>
 
@@ -188,7 +245,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/test/" style="font-size: 10px;">test</a>
+      <a href="/tags/X86%E4%BB%8E%E5%AE%9E%E6%A8%A1%E5%BC%8F%E5%88%B0%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">X86从实模式到保护模式</a> <a href="/tags/test/" style="font-size: 10px;">test</a>
     </div>
   </div>
 
@@ -208,6 +265,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2020/01/16/%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E6%A6%82%E8%BF%B0/">分页机制概述</a>
+          </li>
         
           <li>
             <a href="/2020/01/14/hello/">X86从实模式到保护模式</a>

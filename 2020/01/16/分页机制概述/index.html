@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>分页机制概述 | huloves</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="简单的分页模型在单纯的分段模式下，线性地址就是物理地址。一旦采用了页式内存管理，就应当把4G内存分成大小相同的页。页的最小单位是4KB，也就是4096字节，用十六进制表示就是0x1000。页的物理地址，其低12位始终全为0。段机制在Intel处理器上是最基本的，无法关闭。是否启动页管理功能，分段机制都起作用。 Q：如何将较大的段，映射到大小相同的页面上呢？ A：内存的分配设计段空间的分配和页分配。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分页机制概述">
+<meta property="og:url" content="http://yoursite.com/2020/01/16/%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E6%A6%82%E8%BF%B0/index.html">
+<meta property="og:site_name" content="huloves">
+<meta property="og:description" content="简单的分页模型在单纯的分段模式下，线性地址就是物理地址。一旦采用了页式内存管理，就应当把4G内存分成大小相同的页。页的最小单位是4KB，也就是4096字节，用十六进制表示就是0x1000。页的物理地址，其低12位始终全为0。段机制在Intel处理器上是最基本的，无法关闭。是否启动页管理功能，分段机制都起作用。 Q：如何将较大的段，映射到大小相同的页面上呢？ A：内存的分配设计段空间的分配和页分配。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-01-16T08:32:16.000Z">
+<meta property="article:modified_time" content="2020-01-16T11:30:58.665Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="X86从实模式到保护模式">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="huloves" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">huloves</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-分页机制概述" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/01/16/%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E6%A6%82%E8%BF%B0/" class="article-date">
+  <time datetime="2020-01-16T08:32:16.000Z" itemprop="datePublished">2020-01-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      分页机制概述
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="简单的分页模型"><a href="#简单的分页模型" class="headerlink" title="简单的分页模型"></a>简单的分页模型</h2><p>在单纯的分段模式下，线性地址就是物理地址。一旦采用了页式内存管理，就应当把4G内存分成大小相同的页。<br>页的最小单位是4KB，也就是4096字节，用十六进制表示就是0x1000。页的物理地址，其低12位始终全为0。<br>段机制在Intel处理器上是最基本的，无法关闭。是否启动页管理功能，分段机制都起作用。</p>
+<p>Q：如何将较大的段，映射到大小相同的页面上呢？</p>
+<p>A：内存的分配设计段空间的分配和页分配。在分页模式下，操作系统可以创建一个为所有任务公用的4GB的虚拟内存空间，<br>也可以为每一个任务创建一个4GB虚拟内存空间。当一个程序加载时，操作系统既要在虚拟内存中分配段空间，又要在物理内存中分配相应的页面。</p>
+<p>第一步是寻找空闲的段空间，该段空间既没有其他程序使用，也没由被同一个程序的其他段使用。<br>在分段之后，操作系统的任务是把段拆开，映射到相应的物理页上。段是连续的，但页不要求是连续的。分配页面时，操作系统会搜索那些空闲的页，并分配给程序使用，所分配页面的总长度要≥段长度。<br>线性地址区间和页的对应关系可以随意。虚拟内存不能保存任何数据，它只是反映了内存的使用情况。当操作系统大家一个程序时并创建任务使，操作系统在虚拟内存空间寻找空闲的段，并映射到空闲的页。然后开始加载程序，把原本属于段的数据按页的尺寸拆开，分开写入对应的页中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">允许页共享，多个段或多个程序可以用一个页来存自己的数据。  </span><br><span class="line">因为段与页之间的对应关系，不需要担心会出现找错地址的问题出现。  </span><br><span class="line">从段部件输出的是线性地址，或者叫虚拟地址，操作系统拿着这个线性地址找到对应的页中的物理地址。</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>为了根据线性地址找到页的物理地址，操作系统必须维护一张表，把线性地址换成物理地址。这个表是一个一维表格，每个表项占4字节，内容为页的物理地址。<br>表格的用法：页的尺寸是4KB，多以线性地址的低12位是访问页的页内偏移，高20位指定一个物理页。<br>线性地址的高20位当成索引，乘以4,作为表内偏移，找到要找的物理页地址存放的地方，从表项中取出一个双字，取出的双字就是线性地址锁对应的页的物理地址。加上页内偏移量就找到线性地址对应页的物理地址。</p>
+<p>Q：为什么在表内存放的地址会恰好是页地址，而不是其他页地址呢？</p>
+<p>A：当程序加载时，操作系统会首先在虚拟内存中分配段。然后，根据段需要分成多少页，来搜索空闲的页面。当段较大时，要按页的尺寸分成好几个地址区间，操作系统用每个区段的首地址，取20位，乘以4，作为偏移量访问表格，并将分配给该区段的页的物理地址写入该表项。最后，把原本要写入每个区段的程序数据，写到对应的页中。</p>
+<hr>
+<p>在页式内存管理中，页面的管理和分配是独立的，和分段以及段地址没有关系。操作系统要做的是找到空闲的页，把它分配给需要的段，并将页的物理地址写入映射表内。<br>线性地址，包括线性空间，和页面分配机制没有关系。所以为了充分发挥分页内存管理的潜力，每个任务都可以拥有4GB的虚拟内存空间。同时，每个任务都有自己的页映射表。<br>尽管有很多任务，而且每个任务都有自己的4GB虚拟内存空间，但是在整个系统中，物理页是统一调配的。理解为任务有很多个但物理内存只有一个。</p>
+<p>Q：每个任务都有4GB虚拟内存空间，而物理内存只有一个，最大也才4GB，那要怎么办？</p>
+<p>A：不够用是肯定的。操作系统可以将暂时不用的页退避到磁盘，调入马上就要使用的页，通过这种手段实现分页内存管理。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2020/01/16/%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E6%A6%82%E8%BF%B0/" data-id="ck5gne2sk0000eamp0tncf6c8" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/X86%E4%BB%8E%E5%AE%9E%E6%A8%A1%E5%BC%8F%E5%88%B0%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" rel="tag">X86从实模式到保护模式</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2020/01/14/hello/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">X86从实模式到保护模式</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/X86%E4%BB%8E%E5%AE%9E%E6%A8%A1%E5%BC%8F%E5%88%B0%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" rel="tag">X86从实模式到保护模式</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/X86%E4%BB%8E%E5%AE%9E%E6%A8%A1%E5%BC%8F%E5%88%B0%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">X86从实模式到保护模式</a> <a href="/tags/test/" style="font-size: 10px;">test</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/01/16/%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6%E6%A6%82%E8%BF%B0/">分页机制概述</a>
+          </li>
+        
+          <li>
+            <a href="/2020/01/14/hello/">X86从实模式到保护模式</a>
+          </li>
+        
+          <li>
+            <a href="/2020/01/14/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
