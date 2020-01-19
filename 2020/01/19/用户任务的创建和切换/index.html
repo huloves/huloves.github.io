@@ -15,7 +15,7 @@
 <meta property="og:description" content="多段模型和段页式内存管理传统的多段模型（Multi-Segment Model）适用于开启页功能之后的系统环境。段描述符的基地址是段的线性地址，或者说是虚拟地址。因为开启了页功能，虚拟地址空间上的段要映射到物理内存中的一个或多个页。段是连续的，但映射的页不一定是连续的。段部件得到的线性地址（虚拟地址）经过页部件转换后得到真正的物理地址。 Q：为什么要分段？A：①在早起地址总线的数量不足以访问全部的">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-01-19T03:13:34.000Z">
-<meta property="article:modified_time" content="2020-01-19T06:17:58.653Z">
+<meta property="article:modified_time" content="2020-01-19T17:45:23.900Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="x86从实模式到保护模式">
 <meta name="twitter:card" content="summary">
@@ -93,7 +93,14 @@
 <p>Q：为什么要分段？<br>A：①在早起地址总线的数量不足以访问全部的内存，通过分段可以简介的获得访问全部的内存空间。<br>②可以用很简单的方法实现程序的重定位，让程序在内存那种的位置自由浮动，而不影响它的访问和执行。<br>③可以防止一个程序访问部署需自己的段。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">分页功能出现之后，操作系统控制着物理页的分配权，除非它把一个页分配给某个任务，并填写到任务的页目录和页表中。否则任务没有访问内存的能力。</span><br><span class="line"></span><br><span class="line">在32位处理器出现之后，地址总线的数量足以访问全部的内存空间。软件设计者不再倾向于分段。程序的浮动和重定位也探寻了别的方法。</span><br></pre></td></tr></table></figure>
 
-<h2 id="平坦模式和用户程序的结构"><a href="#平坦模式和用户程序的结构" class="headerlink" title="平坦模式和用户程序的结构"></a>平坦模式和用户程序的结构</h2>
+<h2 id="平坦模式和用户程序的结构"><a href="#平坦模式和用户程序的结构" class="headerlink" title="平坦模式和用户程序的结构"></a>平坦模式和用户程序的结构</h2><p>不分段的内存管理模型称为平坦模式（Flat Model）。所谓的平坦模式，就是将全部4GB内存整体上作为一个打断来处理，而不是分成小的区块。在程序中，指令和数据的偏移量之和它们出现的自然位置有关。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">一个基本的特点：所有内容都是按类型组织的。比如，程序一开始是用户程序头部段，然后是要用到的数据，再然后是可执行代码部分。</span><br></pre></td></tr></table></figure>
+
+<h2 id="用户任务的虚拟地址空间分配"><a href="#用户任务的虚拟地址空间分配" class="headerlink" title="用户任务的虚拟地址空间分配"></a>用户任务的虚拟地址空间分配</h2><p>一般来说所有任务的TCB都应当用内核的地址空间，在内核的虚拟地址空间例分配。因为任务需要由内核负责管理和调度。<br>首先在内核的虚拟地址空间分配内存页，初始化TCB并记录下TCB的基地址用于加载和重定位用户程序。</p>
+<h2 id="用户程序的加载"><a href="#用户程序的加载" class="headerlink" title="用户程序的加载"></a>用户程序的加载</h2><p>首先要给用户程序分配内存空间。使用内核自己的页目录表，只修改它的前半部分，因为哪里属于任务的局部地址空间。最后，吧内核的页目录表复制一份，作为用户任务的页目录表。</p>
+<h2 id="段描述符的创建"><a href="#段描述符的创建" class="headerlink" title="段描述符的创建"></a>段描述符的创建</h2><p>创建用户任务的各个段描述符，并登记在LDT中。</p>
+<h2 id="重定位U-SALT并复制页目录表"><a href="#重定位U-SALT并复制页目录表" class="headerlink" title="重定位U-SALT并复制页目录表"></a>重定位U-SALT并复制页目录表</h2><p>重定位用户程序的调用例程表。<br>在所有的段都重定位，并加载到LDT中后，复制页目录表当做用户任务的页目录表。</p>
+
       
     </div>
     <footer class="article-footer">
