@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>终端和异常的处理与抢占式多任务 | huloves</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="中断和异常中断和异常的作用是指示系统中的某个地方发生了一些事件，需要引起处理器（包括正在执行中的程序和任务）的注意。当中断和异常发生时，典型的结果是迫使处理器将控制从当前正在执行的程序或任务转到另一个例程或者任务中去。该例程叫做中断处理程序，或者异常处理程序。如果是一个任务，则发生任务切换。 中断（Interrupt）中断包括硬件中断和软中断。硬件中断完全是随机产生的，与处理器的执行并不同步。当中">
+<meta property="og:type" content="article">
+<meta property="og:title" content="终端和异常的处理与抢占式多任务">
+<meta property="og:url" content="http://yoursite.com/2020/01/26/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8%E7%9A%84%E5%A4%84%E7%90%86%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1/index.html">
+<meta property="og:site_name" content="huloves">
+<meta property="og:description" content="中断和异常中断和异常的作用是指示系统中的某个地方发生了一些事件，需要引起处理器（包括正在执行中的程序和任务）的注意。当中断和异常发生时，典型的结果是迫使处理器将控制从当前正在执行的程序或任务转到另一个例程或者任务中去。该例程叫做中断处理程序，或者异常处理程序。如果是一个任务，则发生任务切换。 中断（Interrupt）中断包括硬件中断和软中断。硬件中断完全是随机产生的，与处理器的执行并不同步。当中">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-01-26T15:02:41.000Z">
+<meta property="article:modified_time" content="2020-01-26T15:53:42.262Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="x86从实模式到保护模式">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="huloves" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">huloves</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-中断和异常的处理与抢占式多任务" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/01/26/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8%E7%9A%84%E5%A4%84%E7%90%86%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1/" class="article-date">
+  <time datetime="2020-01-26T15:02:41.000Z" itemprop="datePublished">2020-01-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      终端和异常的处理与抢占式多任务
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="中断和异常"><a href="#中断和异常" class="headerlink" title="中断和异常"></a>中断和异常</h2><p>中断和异常的作用是指示系统中的某个地方发生了一些事件，需要引起处理器（包括正在执行中的程序和任务）的注意。<br>当中断和异常发生时，典型的结果是迫使处理器将控制从当前正在执行的程序或任务转到另一个例程或者任务中去。该例程叫做中断处理程序，或者异常处理程序。如果是一个任务，则发生任务切换。</p>
+<h3 id="中断（Interrupt）"><a href="#中断（Interrupt）" class="headerlink" title="中断（Interrupt）"></a>中断（Interrupt）</h3><p>中断包括硬件中断和软中断。<br>硬件中断完全是随机产生的，与处理器的执行并不同步。当中断发生时，处理器要先执行完当前指令（包括保护现场），然后才对中断进行处理。<br>软中断是由int n指令引发的中断处理，n是中断号或者叫类型码。</p>
+<h3 id="异常（Exception）"><a href="#异常（Exception）" class="headerlink" title="异常（Exception）"></a>异常（Exception）</h3><p>异常是内部中断。它们是处理器内部产生的中断，表示在指令执行的过程中遇到了错误的状况。比如当处理器执行一条非法指令，或者因条件不具备，指令不能正常时执行，将引发这种类型的中断。所以说内部中断又叫异常或者异常中断。比如出发指令，被除数为0的情况。</p>
+<p>异常分为三种。<br>第一种是程序错误异常。指令处理器在执行指令的过程中，检测到了程序中的错误，并由此而引发的异常。<br>第二种是软件引发的异常。这类异常通常由into、int3和bound指令主动发起。<br>第三种是机器检查异常。这种异常和处理器型号相关。处理器提供了一种对硬件芯片内部和总线处理进行检查的机制，当检测到有错误时，将引发此类异常。</p>
+<p>根基异常情况的性质和严重性，异常又分为以下三种，并分别实施不同的处理。</p>
+<ul>
+<li>故障（Faults）。故障通常是可以纠正的，比如当执行一个访问内存的指令时，发现那个段或者页不在内存中（P=0），发生缺页异常，可以在异常处理程序中予以纠正（分配内存，或者执行磁盘的换入换出操作），返回时，程序可以重新启动并不失连续性。当故障发生时，处理器把机器状态恢复到引起故障那条指令之前的状态。</li>
+<li>陷阱（Traps）。陷阱中断通常在执行了接活陷阱条件的指令之后立即产生，如果陷阱条件成立的话。陷阱通常用于调试目的，比如单步中断指令int3。陷阱中断允许程序或者任务在从中断处理过程返回之后继续进行而不失连续性。因此，当异常发生时，在转入异常处理程序之前，处理器在栈中压入陷阱截获指令的下一条指令的地址。</li>
+<li>终止（Aborts）。终止标志着最严重的错误，如硬件错误、系统表（GDT、LDT等）中的数据不一致或失效。这种错误发生，程序或者任务不可能重新启动。操作系统只能把该任务从系统中抹去。</li>
+</ul>
+<p>中断和异常发生时，处理器将挂起当前正在执行的过程或者任务，然后执行中断和异常处理过程。返回时，处理器恢复程序或者任务的执行，而且被打断的程序或任务的执行不失连续性，除非遇到一个终止类型的异常。<br>对于某些异常，处理器在转入异常处理程序之前，会在当前栈中压入一个称为错误代码的数值，邦之程序进一步诊断异常产生的位置和原因。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2020/01/26/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8%E7%9A%84%E5%A4%84%E7%90%86%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1/" data-id="ck5v7tlp70000tmmp2541a924" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/x86%E4%BB%8E%E5%AE%9E%E6%A8%A1%E5%BC%8F%E5%88%B0%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" rel="tag">x86从实模式到保护模式</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2020/01/22/%E5%AE%89%E8%A3%85centos7%E5%90%8E%EF%BC%8C%E5%90%AF%E5%8A%A8%E5%BC%95%E5%AF%BC%E6%B2%A1%E6%9C%89Windows/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">安装centos7后，启动引导没有Windows</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/test/" rel="tag">test</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/x86%E4%BB%8E%E5%AE%9E%E6%A8%A1%E5%BC%8F%E5%88%B0%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" rel="tag">x86从实模式到保护模式</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AE%89%E8%A3%85%E7%B3%BB%E7%BB%9F/" rel="tag">安装系统</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB/" rel="tag">程序员的自我修养</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/test/" style="font-size: 10px;">test</a> <a href="/tags/x86%E4%BB%8E%E5%AE%9E%E6%A8%A1%E5%BC%8F%E5%88%B0%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" style="font-size: 20px;">x86从实模式到保护模式</a> <a href="/tags/%E5%AE%89%E8%A3%85%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">安装系统</a> <a href="/tags/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB/" style="font-size: 10px;">程序员的自我修养</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/01/26/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8%E7%9A%84%E5%A4%84%E7%90%86%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1/">终端和异常的处理与抢占式多任务</a>
+          </li>
+        
+          <li>
+            <a href="/2020/01/22/%E5%AE%89%E8%A3%85centos7%E5%90%8E%EF%BC%8C%E5%90%AF%E5%8A%A8%E5%BC%95%E5%AF%BC%E6%B2%A1%E6%9C%89Windows/">安装centos7后，启动引导没有Windows</a>
+          </li>
+        
+          <li>
+            <a href="/2020/01/19/%E7%94%A8%E6%88%B7%E4%BB%BB%E5%8A%A1%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E5%88%87%E6%8D%A2/">用户任务的创建和切换</a>
+          </li>
+        
+          <li>
+            <a href="/2020/01/18/%E5%88%9B%E5%BB%BA%E5%86%85%E6%A0%B8%E4%BB%BB%E5%8A%A1/">创建内核任务</a>
+          </li>
+        
+          <li>
+            <a href="/2020/01/16/%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%81%9A%E4%BB%80%E4%B9%88/">自我修养--操作系统做什么</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
